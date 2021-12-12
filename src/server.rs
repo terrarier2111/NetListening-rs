@@ -49,9 +49,10 @@ impl Server {
 
 }
 
-pub struct ServerBuilder {
+pub struct ServerBuilder<'a> {
 
-    bind_port: u16,
+    bind_port: Option<u16>,
+    path: Option<&'a str>,
 
 }
 
@@ -60,7 +61,17 @@ impl ServerBuilder {
     #[inline]
     pub fn from_port(port: u16) -> Self {
         Self {
-            bind_port: port
+            bind_port: Some(port),
+            path: None
+        }
+    }
+
+    /// This builder is used to construct a Server based on UDS(UnixDomainSockets) and thus this isn't available on every platform!
+    #[inline]
+    pub fn from_path(path: &str) -> Self {
+        Self {
+            bind_port: None,
+            path: Some(path)
         }
     }
 
@@ -68,5 +79,15 @@ impl ServerBuilder {
     pub async fn build(self) -> Server {
         Server::new(self).await
     }
+
+}
+
+pub enum ClientSetting {
+
+    BufferSize(usize),
+    Timeout(Option<usize>),
+    StringEncoding(),
+    Compression(),
+    Encryption(),
 
 }

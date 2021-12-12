@@ -1,6 +1,7 @@
 use crate::event::EventManager;
-use std::net::TcpStream;
+use tokio::*;
 use crate::connection::Connection;
+use std::net::TcpStream;
 
 pub struct Client {
 
@@ -58,6 +59,8 @@ impl ClientBuilder {
 
 pub enum ClientSetting {
 
-
+    BufferSize(usize),
+    Timeout(Option<usize>),
+    LocalPort(u16),
 
 }

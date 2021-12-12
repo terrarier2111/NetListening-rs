@@ -4,6 +4,7 @@ use std::thread::{Thread, JoinHandle};
 use std::sync::{Arc, RwLock};
 use crate::event::Event;
 use crate::connection::{Connection, ConMethods};
+use std::sync::atomic::AtomicU64;
 
 pub type RawConnection = (TcpStream, SocketAddr);
 
@@ -12,20 +13,28 @@ pub struct Server {
     listener: Arc<TcpListener>,
     client_acceptor: JoinHandle<()>,
     connections: Arc<RwLock<Vec<Connection>>>,
+    connections_id: Arc<AtomicU64>,
 
 }
 
 impl Server {
+
+    #[inline]
+    pub fn builder_from_port(port: u16) -> ServerBuilder {
+        ServerBuilder::from_port(port)
+    }
 
     async fn new(builder: ServerBuilder) -> Self {
         let mut result_str = String::from("127.0.0.1:");
         result_str.push_str(&*format!("{}", builder.bind_port));
         let listener = Arc::new(TcpListener::bind(&*result_str).unwrap());
         let tmp_listener = listener.clone();
+        let connections_id = Arc::new(AtomicU64::default());
+        let tmp_id = connections_id.clone();
         let client_acceptor = thread::spawn(move || {
             loop {
                 let raw_connection = tmp_listener.clone().accept().unwrap();
-                let connection = Connection::new_con(raw_connection.0, raw_connection.1);
+                let connection = Connection::new_con(raw_connection.0, raw_connection.1, tmp_id.clone());
                 let event = Event::Connect(connection);
 
             }
@@ -33,7 +42,8 @@ impl Server {
         Self {
             listener,
             client_acceptor,
-            connections: Arc::new(Default::default())
+            connections: Arc::new(Default::default()),
+            connections_id: connections_id.clone(),
         }
     }
 
@@ -48,14 +58,15 @@ pub struct ServerBuilder {
 impl ServerBuilder {
 
     #[inline]
-    pub fn port(mut self, port: u16) -> Self {
-        self.bind_port = port;
-        self
+    pub fn from_port(port: u16) -> Self {
+        Self {
+            bind_port: port
+        }
     }
 
     #[inline]
-    pub fn build(self) -> Server {
-        Server::new(self)
+    pub async fn build(self) -> Server {
+        Server::new(self).await
     }
 
 }

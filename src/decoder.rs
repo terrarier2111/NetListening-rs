@@ -1,5 +1,8 @@
 use crate::utils::{DataComponent, DataTypeMethods, DataContainer};
 use std::any::Any;
+use std::io::Read;
+use crate::connection::Connection;
+use crate::buffer::Buffer;
 
 pub struct Decoder {
 
@@ -35,7 +38,7 @@ pub(crate) struct FramingState {
 
 impl Decoder {
 
-    pub fn decode(&mut self) {
+    pub fn decode(&mut self, connection: Connection, buffer: Buffer) {
 
     }
 

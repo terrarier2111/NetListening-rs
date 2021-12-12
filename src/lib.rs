@@ -8,6 +8,7 @@ pub mod utils;
 mod decoder;
 mod encoder;
 mod timeout_handler;
+mod buffer;
 
 #[cfg(test)]
 mod tests {

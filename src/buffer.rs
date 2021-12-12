@@ -1,0 +1,1 @@
+pub type Buffer = [u8; 256]; // TODO: Make a better definition!

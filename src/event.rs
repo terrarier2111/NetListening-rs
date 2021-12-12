@@ -21,7 +21,7 @@ pub enum DisconnectReason {
 
 }
 
-pub(crate) type Listener = Box<dyn Fn(&mut WrappedEvent) -> bool + Send + Sync>;
+pub type Listener = Box<dyn Fn(&mut WrappedEvent) -> bool + Send + Sync>;
 
 pub(crate) struct WrappedEventModifierBuilder(u8);
 

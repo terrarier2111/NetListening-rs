@@ -18,7 +18,7 @@ pub struct InnerConnection {
 
 impl InnerConnection {
 
-    pub fn new(raw_connection: TcpStream, address: SocketAddr, connection_id: AtomicU64) -> Self {
+    pub fn new(raw_connection: TcpStream, address: SocketAddr, connection_id: Arc<AtomicU64>) -> Self {
         let curr_id = connection_id.load(Ordering::SeqCst);
         connection_id.store(curr_id + 1, Ordering::SeqCst);
         Self {
@@ -51,13 +51,13 @@ impl InnerConnection {
 
 pub(crate) trait ConMethods {
 
-    fn new_con(raw_connection: TcpStream, address: SocketAddr) -> Arc<InnerConnection>;
+    fn new_con(raw_connection: TcpStream, address: SocketAddr, connection_id: Arc<AtomicU64>) -> Arc<InnerConnection>;
 
 }
 
 impl ConMethods for Connection {
-    fn new_con(raw_connection: TcpStream, address: SocketAddr) -> Arc<InnerConnection> {
-        Arc::new(InnerConnection::new(raw_connection, address))
+    fn new_con(raw_connection: TcpStream, address: SocketAddr, connection_id: Arc<AtomicU64>) -> Arc<InnerConnection> {
+        Arc::new(InnerConnection::new(raw_connection, address, connection_id))
     }
 }
 

@@ -12,43 +12,52 @@ pub struct Client {
 
 impl Client {
 
-    fn new(builder: ClientBuilder) -> Self {
-        Self {
-            event_manager: EventManager::default(),
-            local_connection: TcpStream::connect(format!("{}:{}", builder.target_address, builder.target_port)).unwrap(),
-        }
+    #[inline]
+    pub fn builder_from_destination(address: String, port: u16) -> ClientBuilder {
+        ClientBuilder::from_destination(address, port)
     }
 
-    pub async fn connect(&self) {
-
+    async fn new(builder: ClientBuilder) -> Self {
+        Self {
+            event_manager: EventManager::default(),
+            local_connection: TcpStream::connect(format!("{}:{}", builder.dst_address, builder.dst_port)).unwrap(),
+        }
     }
 
 }
 
 pub struct ClientBuilder {
 
-    target_address: String,
-    target_port: u16,
+    dst_address: String,
+    dst_port: u16,
 
 }
 
 impl ClientBuilder {
 
     #[inline]
-    pub fn target_address(mut self, target_address: String) -> Self {
-        self.target_address = target_address;
+    pub fn from_destination(address: String, port: u16) -> Self {
+        Self {
+            dst_address: address,
+            dst_port: port,
+        }
+    }
+
+    #[inline]
+    pub fn setting(mut self, setting: ClientSetting) -> Self {
+
         self
     }
 
     #[inline]
-    pub fn target_port(mut self, target_port: u16) -> Self {
-        self.target_port = target_port;
-        self
+    pub async fn build(self) -> Client {
+        Client::new(self).await
     }
 
-    #[inline]
-    pub fn build(self) -> Client {
-        Client::new(self)
-    }
+}
+
+pub enum ClientSetting {
+
+
 
 }

@@ -1,0 +1,9 @@
+[package]
+name = "NetListening-rs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = "1.14.0"
+parking_lot = "0.11.2"
+ordered-varint = "0.1.0-dev.1"

@@ -1,15 +1,15 @@
-use crate::server::RawConnection;
 use std::sync::Arc;
 use parking_lot::RwLock;
 use std::sync::atomic::{AtomicU64, Ordering};
 use crate::connection::Connection;
+use crate::utils::DataContainer;
 
 #[derive(Clone)]
 pub enum Event {
 
     Connect(Connection),
     Disconnect(DisconnectReason),
-    ReceiveData(),
+    ReceiveData(DataContainer),
 
 }
 

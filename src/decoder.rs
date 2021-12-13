@@ -1,13 +1,11 @@
 
-use crate::utils::{DataComponent, DataTypeMethods, DataContainer};
-use std::any::Any;
-use std::io::Read;
+use crate::utils::DataContainer;
 use crate::connection::Connection;
 use crate::buffer::Buffer;
-use crate::appliaction::Application;
-// FIXME: add parking_lot's mutex import
+use crate::application::Application;
+use parking_lot::Mutex;
 
-pub struct Decoder {
+pub(crate) struct Decoder {
 
     application: Application,
     config: DecoderConfig,
@@ -44,7 +42,7 @@ pub(crate) struct FramingState {
 
 }
 
-impl<T: Application> Decoder<T> {
+impl Decoder {
 
     // FIXME: Return result with IOError and some other type or `()`
     pub fn decode(&self, buffer: &mut Buffer) {
@@ -56,3 +54,5 @@ impl<T: Application> Decoder<T> {
 // FIXME: Can this be implemented safely when using async?
 //unsafe impl Send for DecoderState {}
 //unsafe impl Sync for DecoderState {}
+unsafe impl Send for DecoderConfig {}
+unsafe impl Sync for DecoderConfig {}

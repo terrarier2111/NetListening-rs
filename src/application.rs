@@ -1,9 +1,10 @@
 use crate::connection::Connection;
 use crate::event::Listener;
+use std::sync::Arc;
 
 pub type Application = Arc<(dyn RawApplication + Sync + Send)>;
 
-pub trait RawApplication: Sized {
+pub trait RawApplication {
 
     fn register_listener(&mut self, listener: Listener) -> u64;
 
@@ -15,6 +16,6 @@ pub trait RawApplication: Sized {
 
     fn connection_by_id(&self, id: usize) -> Connection;
 
-    fn config(); // TODO: Add some way to get config values which were set in the builder(but return them immutably)
+    fn config(&self); // TODO: Add some way to get config values which were set in the builder(but return them immutably)
 
 }

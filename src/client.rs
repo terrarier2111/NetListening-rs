@@ -1,6 +1,4 @@
 use crate::event::EventManager;
-use tokio::*;
-use crate::connection::Connection;
 use std::net::TcpStream;
 
 pub struct Client {

@@ -1,31 +1,18 @@
-use crate::utils::{DataComponent, DataTypeMethods, DataContainer};
-use std::any::Any;
+use crate::utils::DataContainer;
 use crate::connection::Connection;
 use crate::application::Application;
 use crate::buffer::Buffer;
 
-pub struct Encoder<T: Application> {
+pub struct Encoder {
 
-    application: T,
-    config: EncoderConfig,
-
-}
-
-pub(crate) struct EncoderConfig {
-
-
-
-}
-
-pub(crate) struct EncoderState {
-
+    application: Application,
     connection: Connection,
 
 }
 
-impl<T: Application> Encoder<T> {
+impl Encoder {
 
-    pub fn encode(&self, state: &mut EncoderState, buffer: &mut Buffer) {
+    pub(crate) fn encode(&self, buffer: &mut Buffer, data_container: DataContainer) {
 
     }
 

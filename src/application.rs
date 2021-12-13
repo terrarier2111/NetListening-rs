@@ -1,7 +1,9 @@
 use crate::connection::Connection;
 use crate::event::Listener;
 
-pub trait Application: Sized {
+pub type Application = Arc<(dyn RawApplication + Sync + Send)>;
+
+pub trait RawApplication: Sized {
 
     fn register_listener(&mut self, listener: Listener) -> u64;
 

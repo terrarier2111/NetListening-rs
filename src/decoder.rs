@@ -5,11 +5,13 @@ use std::io::Read;
 use crate::connection::Connection;
 use crate::buffer::Buffer;
 use crate::appliaction::Application;
+// FIXME: add parking_lot's mutex import
 
-pub struct Decoder<T: Application> {
+pub struct Decoder {
 
-    application: T,
+    application: Application,
     config: DecoderConfig,
+    state: Mutex<DecoderState>,
 
 }
 
@@ -33,6 +35,7 @@ pub(crate) struct DecoderState {
 
 }
 
+
 pub(crate) struct FramingState {
 
     active: bool,
@@ -44,8 +47,12 @@ pub(crate) struct FramingState {
 impl<T: Application> Decoder<T> {
 
     // FIXME: Return result with IOError and some other type or `()`
-    pub fn decode(&self, state: &mut DecoderState, buffer: &mut Buffer) {
-
+    pub fn decode(&self, buffer: &mut Buffer) {
+        let mut state = self.state.lock();
     }
 
 }
+
+// FIXME: Can this be implemented safely when using async?
+//unsafe impl Send for DecoderState {}
+//unsafe impl Sync for DecoderState {}

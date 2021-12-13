@@ -7,6 +7,7 @@ use crate::buffer::Buffer;
 pub struct Encoder<T: Application> {
 
     application: T,
+    config: EncoderConfig,
 
 }
 
@@ -18,13 +19,13 @@ pub(crate) struct EncoderConfig {
 
 pub(crate) struct EncoderState {
 
-    
+    connection: Connection,
 
 }
 
 impl<T: Application> Encoder<T> {
 
-    pub fn encode(&mut self, connection: Connection, buffer: Buffer) {
+    pub fn encode(&self, state: &mut EncoderState, buffer: &mut Buffer) {
 
     }
 

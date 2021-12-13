@@ -6,9 +6,9 @@ use crate::connection::Connection;
 use crate::buffer::Buffer;
 use crate::appliaction::Application;
 
-pub struct Decoder {
+pub struct Decoder<T: Application> {
 
-    application: Application,
+    application: T,
     config: DecoderConfig,
 
 }
@@ -41,7 +41,7 @@ pub(crate) struct FramingState {
 
 }
 
-impl Decoder {
+impl<T: Application> Decoder<T> {
 
     // FIXME: Return result with IOError and some other type or `()`
     pub fn decode(&self, state: &mut DecoderState, buffer: &mut Buffer) {

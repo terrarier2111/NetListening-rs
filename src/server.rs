@@ -5,6 +5,7 @@ use std::sync::{Arc, RwLock};
 use crate::event::Event;
 use crate::connection::{Connection, ConMethods};
 use std::sync::atomic::AtomicU64;
+use socket2::{Socket, Domain, Type};
 
 pub type RawConnection = (TcpStream, SocketAddr);
 
@@ -30,6 +31,7 @@ impl Server {
             result_str.push_str(&*format!("{}", bind_port));
             Arc::new(TcpListener::bind(&*result_str).unwrap())
         } else {
+            // Arc::new(Socket::new(Domain::UNIX, Type::DGRAM, None))
             todo!()
         };
         let tmp_listener = listener.clone();

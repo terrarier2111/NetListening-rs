@@ -9,7 +9,7 @@ pub enum Event {
 
     Connect(Connection),
     Disconnect(DisconnectReason),
-    ReceiveData(DataContainer),
+    ReceiveData(/*DataContainer*/),
 
 }
 

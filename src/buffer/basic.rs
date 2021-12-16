@@ -7,7 +7,6 @@ use arc_swap::ArcSwap;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::convert::TryInto;
-use std::borrow::{BorrowMut, Borrow};
 
 pub struct BasicBuffer {
 
@@ -45,10 +44,10 @@ impl ReadableBuffer for BasicBuffer {
         }
         let mut rdx = self.rdx.clone();
         let mut rdx = rdx.borrow_mut();
-        let inner = rdx.into_inner();
-        rdx.replace(inner + 1);
-        let data_inner: &RefCell<Box<[u8]>> = self.inner.clone().borrow();
-        Ok((data_inner.into_inner())[inner - 1])
+        *rdx += 1;
+        let inner = self.inner.clone();
+        let inner = inner.borrow();
+        Ok((*inner)[*rdx - 1])
     }
 
     fn read_i16(&self) -> Result<i16, OOBSError> {
@@ -91,18 +90,19 @@ impl ReadableBuffer for BasicBuffer {
     }
 
     fn set_reader_index(&self, reader_index: usize) {
-        self.rdx.clone().borrow_mut().replace(reader_index);
+        *self.rdx.clone().borrow_mut() = reader_index;
     }
 
     fn get_reader_index(&self) -> usize {
-        let rdx: &RefCell<usize> = self.rdx.borrow();
-        rdx.into_inner()
+        *self.rdx.borrow()
     }
 
     fn readable_bytes(&self) -> usize {
-        let rdx: &RefCell<usize> = self.rdx.clone().borrow();
-        let inner: &RefCell<Box<[u8]>> = self.inner.clone().borrow();
-        inner.into_inner().len() - rdx.into_inner()
+        let rdx = self.rdx.clone();
+        let rdx = *rdx.borrow();
+        let inner = self.inner.clone();
+        let inner = inner.borrow();
+        (*inner).len() - rdx
     }
 }
 

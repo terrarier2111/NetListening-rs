@@ -1,7 +1,7 @@
 
 use crate::utils::DataContainer;
 use crate::connection::Connection;
-use crate::buffer::Buffer;
+use crate::buffer::{RWBuffer, RBuffer};
 use crate::application::Application;
 use parking_lot::Mutex;
 
@@ -45,7 +45,7 @@ pub(crate) struct FramingState {
 impl Decoder {
 
     // FIXME: Return result with IOError and some other type or `()`
-    pub fn decode(&self, buffer: &mut Buffer) {
+    pub fn decode(&self, buffer: &RBuffer) {
         let mut state = self.state.lock();
     }
 

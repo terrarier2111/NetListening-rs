@@ -1,7 +1,7 @@
 use crate::utils::DataContainer;
 use crate::connection::Connection;
 use crate::application::Application;
-use crate::buffer::Buffer;
+use crate::buffer::RWBuffer;
 
 pub struct Encoder {
 
@@ -12,7 +12,7 @@ pub struct Encoder {
 
 impl Encoder {
 
-    pub(crate) fn encode(&self, buffer: &mut Buffer, data_container: DataContainer) {
+    pub(crate) fn encode(&self, buffer: &RWBuffer, data_container: DataContainer) {
 
     }
 

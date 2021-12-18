@@ -19,6 +19,7 @@ use std::ops::{DerefMut, Deref};
 // These buffers are inspired by Netty
 
 // TODO: MAYBE use this BufferAllocator ZST in the future
+/*
 pub trait BufferAllocator<const SIZE: usize> {
 
     // FIXME: Use this instead of alloc once https://github.com/rust-lang/rust/issues/29661 is closed!
@@ -26,7 +27,7 @@ pub trait BufferAllocator<const SIZE: usize> {
 
     fn alloc() -> [u8; SIZE];
 
-}
+}*/
 
 pub type RWBuffer = Box<dyn RWBufferType>;
 pub type RBuffer = Box<dyn ReadableBuffer>;
@@ -45,8 +46,6 @@ pub trait GeneralBuffer {
 }
 
 impl<T> RWBufferType for T where T: WritableBuffer + ReadableBuffer {}
-
-pub trait NoWriteBuffer: GeneralBuffer {}
 
 pub trait ReadableBuffer: GeneralBuffer {
 
@@ -94,9 +93,20 @@ pub trait ReadableBuffer: GeneralBuffer {
         self.read_u64().map(|x| unsafe { transmute::<u64, f64>(x) })
     }
 
-    fn read_bytes(&self, byte_count: usize) -> Result<Box<[u8]>, OOBSError>;
+    fn read_bytes(&self, byte_count: usize) -> Result<Box<[u8]>, OOBSError> {
+        // TODO: Put this check into "read_bytes_into"
+        /*if !self.has_readable_bytes(byte_count) { // TODO: Add a way to disable this! (this is only here enabled currently because when reading an arbitrary amount of data this seems pretty necessary!)
+            return Err(OOBSError::new("No buffer space available!".to_string()));
+        }*/
+        let mut bytes = vec![0_u8; byte_count].into_boxed_slice();
+        let error = self.read_bytes_into(byte_count, bytes.as_mut());
+        match error {
+            None => Ok(bytes),
+            Some(err) => Err(err),
+        }
+    }
 
-    fn read_bytes_into(&self, byte_count: usize, buffer: &mut [u8]) -> Option<OOBSError>;
+    fn read_bytes_into(&self, byte_count: usize, buf: &mut [u8]) -> Option<OOBSError>;
 
     fn set_reader_index(&self, reader_index: usize);
 
@@ -138,21 +148,28 @@ pub trait WritableBuffer: GeneralBuffer {
         self.write_u8(unsafe { transmute::<i8, u8>(x) })
     }
 
-    fn write_u8(&self, _: u8) -> Option<OOBSError>;
+    // NOTICE: This should probably be overridden in every implementation possible!
+    fn write_u8(&self, x: u8) -> Option<OOBSError> {
+        self.write_bytes(u8::to_be_bytes(x).as_slice())
+    }
 
     #[inline]
     fn write_i16(&self, x: i16) -> Option<OOBSError> {
         self.write_u16(unsafe { transmute::<i16, u16>(x) })
     }
 
-    fn write_u16(&self, _: u16) -> Option<OOBSError>;
+    fn write_u16(&self, x: u16) -> Option<OOBSError> {
+        self.write_bytes(u16::to_be_bytes(x).as_slice())
+    }
 
     #[inline]
     fn write_i32(&self, x: i32) -> Option<OOBSError> {
         self.write_u32(unsafe { transmute::<i32, u32>(x) })
     }
 
-    fn write_u32(&self, _: u32) -> Option<OOBSError>;
+    fn write_u32(&self, x: u32) -> Option<OOBSError> {
+        self.write_bytes(u32::to_be_bytes(x).as_slice())
+    }
 
     #[inline]
     fn write_i64(&self, x: i64) -> Option<OOBSError> {
@@ -223,9 +240,7 @@ impl Display for NoReadableBytesError {
 
 impl Error for NoReadableBytesError {}
 
-// pub type Buffer = ArcSwap<Vec<Arc<Box<Mutex<[u8]>>>>>; // TODO: Can this size be inlined into
-pub type CSBuffer<const SIZE: usize> = ArcSwap<Vec<Arc<Mutex<[u8; SIZE]>>>>;
-
+/* // TODO: Readd this if needed and if we're sure that it doesn't cause to many impls to be shown in ides and such!
 impl Read for dyn ReadableBuffer {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let readable = self.readable_bytes();
@@ -235,4 +250,4 @@ impl Read for dyn ReadableBuffer {
         let _result = self.read_bytes_into(readable, buf);
         return Ok(readable);
     }
-}
+}*/

@@ -10,8 +10,8 @@ use crate::buffer::utils::IntoRaw;
 pub struct ComposedBuffer {
 
     inner: Rc<RefCell<Vec<Rc<RefCell<Box<[u8]>>>>>>, // TODO: Can this size be inlined into Mutex?
-    rdx: Rc<RefCell<usize>>, // reader index
-    wrx: Rc<RefCell<usize>>, // writer index
+    rdx: RefCell<usize>, // reader index
+    wrx: RefCell<usize>, // writer index
 
 }
 
@@ -30,51 +30,7 @@ impl GeneralBuffer for ComposedBuffer {
 }
 
 impl ReadableBuffer for ComposedBuffer {
-    fn read_bool(&self) -> Result<bool, OOBSError> {
-        todo!()
-    }
-
-    fn read_i8(&self) -> Result<i8, OOBSError> {
-        todo!()
-    }
-
     fn read_u8(&self) -> Result<u8, OOBSError> {
-        todo!()
-    }
-
-    fn read_i16(&self) -> Result<i16, OOBSError> {
-        todo!()
-    }
-
-    fn read_u16(&self) -> Result<u16, OOBSError> {
-        todo!()
-    }
-
-    fn read_i32(&self) -> Result<i32, OOBSError> {
-        todo!()
-    }
-
-    fn read_u32(&self) -> Result<u32, OOBSError> {
-        todo!()
-    }
-
-    fn read_i64(&self) -> Result<i64, OOBSError> {
-        todo!()
-    }
-
-    fn read_u64(&self) -> Result<u64, OOBSError> {
-        todo!()
-    }
-
-    fn read_f32(&self) -> Result<f32, OOBSError> {
-        todo!()
-    }
-
-    fn read_f64(&self) -> Result<f64, OOBSError> {
-        todo!()
-    }
-
-    fn read_bytes(&self, byte_count: usize) -> Result<Box<[u8]>, OOBSError> {
         todo!()
     }
 
@@ -100,32 +56,21 @@ impl WritableBuffer for ComposedBuffer {
         todo!()
     }
 
-    fn write_u16(&self, _: u16) -> Option<OOBSError> {
-        todo!()
-    }
-
-    fn write_u32(&self, _: u32) -> Option<OOBSError> {
-        todo!()
-    }
-
-    fn write_u64(&self, _: u64) -> Option<OOBSError> {
-        todo!()
-    }
-
     fn write_bytes(&self, _: &[u8]) -> Option<OOBSError> {
         todo!()
     }
 
-    fn set_writer_index(&self, reader_index: usize) {
-        todo!()
+    fn set_writer_index(&self, writer_index: usize) {
+        let mut wrx = self.wrx.borrow_mut();
+        *wrx = writer_index;
     }
 
     fn get_writer_index(&self) -> usize {
-        todo!()
+        *self.rdx.borrow()
     }
 
     fn writable_bytes(&self) -> usize {
-        todo!()
+        self.contained_bytes() - self.get_writer_index()
     }
 }
 
@@ -152,55 +97,11 @@ impl GeneralBuffer for TSComposedBuffer {
 }
 
 impl ReadableBuffer for TSComposedBuffer {
-    fn read_bool(&self) -> Result<bool, OOBSError> {
-        todo!()
-    }
-
-    fn read_i8(&self) -> Result<i8, OOBSError> {
-        todo!()
-    }
-
     fn read_u8(&self) -> Result<u8, OOBSError> {
         todo!()
     }
 
-    fn read_i16(&self) -> Result<i16, OOBSError> {
-        todo!()
-    }
-
-    fn read_u16(&self) -> Result<u16, OOBSError> {
-        todo!()
-    }
-
-    fn read_i32(&self) -> Result<i32, OOBSError> {
-        todo!()
-    }
-
-    fn read_u32(&self) -> Result<u32, OOBSError> {
-        todo!()
-    }
-
-    fn read_i64(&self) -> Result<i64, OOBSError> {
-        todo!()
-    }
-
-    fn read_u64(&self) -> Result<u64, OOBSError> {
-        todo!()
-    }
-
-    fn read_f32(&self) -> Result<f32, OOBSError> {
-        todo!()
-    }
-
-    fn read_f64(&self) -> Result<f64, OOBSError> {
-        todo!()
-    }
-
-    fn read_bytes(&self, byte_count: usize) -> Result<Box<[u8]>, OOBSError> {
-        todo!()
-    }
-
-    fn read_bytes_into(&self, byte_count: usize, buffer: &mut [u8]) -> Option<OOBSError> {
+    fn read_bytes_into(&self, byte_count: usize, buf: &mut [u8]) -> Option<OOBSError> {
         todo!()
     }
 
@@ -222,18 +123,6 @@ impl WritableBuffer for TSComposedBuffer {
         todo!()
     }
 
-    fn write_u16(&self, _: u16) -> Option<OOBSError> {
-        todo!()
-    }
-
-    fn write_u32(&self, _: u32) -> Option<OOBSError> {
-        todo!()
-    }
-
-    fn write_u64(&self, _: u64) -> Option<OOBSError> {
-        todo!()
-    }
-
     fn write_bytes(&self, _: &[u8]) -> Option<OOBSError> {
         todo!()
     }
@@ -246,7 +135,8 @@ impl WritableBuffer for TSComposedBuffer {
         todo!()
     }
 
+    #[inline]
     fn writable_bytes(&self) -> usize {
-        todo!()
+        self.contained_bytes() - self.get_writer_index()
     }
 }

@@ -1,5 +1,6 @@
 use crate::buffer::{ReadableBuffer, WritableBuffer, OOBSError};
 
+// TODO: Should we provide a way to access the last few bits which aren't intended to be used?
 pub struct VarIntUnsigned(u32);
 pub struct VarIntSigned(i32);
 

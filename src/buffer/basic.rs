@@ -12,9 +12,9 @@ use std::io::Read;
 
 pub struct BasicBuffer {
 
-    inner: Rc<RefCell<Box<[u8]>>>,
-    rdx: Rc<RefCell<usize>>,  // reader index
-    wrx: Rc<RefCell<usize>>,  // writer index
+    inner: RefCell<Box<[u8]>>,
+    rdx: RefCell<usize>,  // reader index
+    wrx: RefCell<usize>,  // writer index
     size: usize, // the size of the currently allocated space (used to bypass the arc and mutex)
 
 }
@@ -22,7 +22,7 @@ pub struct BasicBuffer {
 impl GeneralBuffer for BasicBuffer {
     fn alloc_new(size: usize) -> Self {
         Self {
-            inner: Rc::new(RefCell::new(vec![0; size].into_boxed_slice())),
+            inner: RefCell::new(vec![0; size].into_boxed_slice()),
             rdx: Default::default(),
             wrx: Default::default(),
             size,
@@ -32,7 +32,7 @@ impl GeneralBuffer for BasicBuffer {
     fn alloc_new_from_buf(buf: Box<[u8]>) -> Self where Self: Sized {
         let size = buf.len();
         Self {
-            inner: Rc::new(RefCell::new(buf)),
+            inner: RefCell::new(buf),
             rdx: Default::default(),
             wrx: Default::default(),
             size,
@@ -40,8 +40,7 @@ impl GeneralBuffer for BasicBuffer {
     }
 
     fn raw_contained_bytes(self) -> Box<[u8]> where Self: Sized {
-        let tmp = self.inner.clone();
-        tmp.take()
+        self.inner.take()
     }
 }
 
@@ -59,11 +58,9 @@ impl ReadableBuffer for BasicBuffer {
         /*if !self.has_readable_bytes(1) { // TODO: Maybe add a way to enable this with some constant! - generic type parameters on the trait methods don't work sadly :(
             return Err(OOBSError::new("No buffer space available!".to_string()));
         }*/
-        let mut rdx = self.rdx.clone();
-        let mut rdx = rdx.borrow_mut();
+        let mut rdx = self.rdx.borrow_mut();
         *rdx += 1;
-        let inner = self.inner.clone();
-        let inner = inner.borrow();
+        let inner = self.inner.borrow();
         Ok((*inner)[*rdx - 1])
     }
 
@@ -112,7 +109,7 @@ impl ReadableBuffer for BasicBuffer {
 
     #[inline]
     fn set_reader_index(&self, reader_index: usize) {
-        *self.rdx.clone().borrow_mut() = reader_index;
+        *self.rdx.borrow_mut() = reader_index;
     }
 
     #[inline]
@@ -131,32 +128,21 @@ impl WritableBuffer for BasicBuffer {
         todo!()
     }
 
-    fn write_u16(&self, _: u16) -> Option<OOBSError> {
-        todo!()
-    }
-
-    fn write_u32(&self, _: u32) -> Option<OOBSError> {
-        todo!()
-    }
-
-    fn write_u64(&self, _: u64) -> Option<OOBSError> {
-        todo!()
-    }
-
     fn write_bytes(&self, _: &[u8]) -> Option<OOBSError> {
         todo!()
     }
 
     fn set_writer_index(&self, writer_index: usize) {
-        todo!()
+        let mut wrx = self.wrx.borrow_mut();
+        *wrx = writer_index;
     }
 
     fn get_writer_index(&self) -> usize {
-        todo!()
+        *self.wrx.borrow()
     }
 
     fn writable_bytes(&self) -> usize {
-        todo!()
+        self.contained_bytes() - self.get_writer_index()
     }
 }
 
@@ -205,13 +191,6 @@ impl ReadableBuffer for TSBasicBuffer {
         Ok(self.inner.clone().lock()[rdx])
     }
 
-    fn read_bytes(&self, byte_count: usize) -> Result<Box<[u8]>, OOBSError> {
-        if !self.has_readable_bytes(byte_count) {
-            return Err(OOBSError::new("No buffer space available!".to_string()));
-        }
-        todo!()
-    }
-
     fn read_bytes_into(&self, byte_count: usize, buffer: &mut [u8]) -> Option<OOBSError> {
         todo!()
     }
@@ -233,23 +212,11 @@ impl ReadableBuffer for TSBasicBuffer {
 }
 
 impl WritableBuffer for TSBasicBuffer {
-    fn write_u8(&self, _: u8) -> Option<OOBSError> {
+    fn write_u8(&self, _x: u8) -> Option<OOBSError> {
         todo!()
     }
 
-    fn write_u16(&self, _: u16) -> Option<OOBSError> {
-        todo!()
-    }
-
-    fn write_u32(&self, _: u32) -> Option<OOBSError> {
-        todo!()
-    }
-
-    fn write_u64(&self, _: u64) -> Option<OOBSError> {
-        todo!()
-    }
-
-    fn write_bytes(&self, _: &[u8]) -> Option<OOBSError> {
+    fn write_bytes(&self, _x: &[u8]) -> Option<OOBSError> {
         todo!()
     }
 
@@ -261,8 +228,9 @@ impl WritableBuffer for TSBasicBuffer {
         self.wrx.load(Ordering::Acquire)
     }
 
+    #[inline]
     fn writable_bytes(&self) -> usize {
-        todo!()
+        self.contained_bytes() - self.get_writer_index()
     }
 }
 

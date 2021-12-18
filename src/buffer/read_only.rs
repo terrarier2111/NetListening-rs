@@ -33,14 +33,6 @@ impl GeneralBuffer for ReadOnlyBuffer {
 }
 
 impl ReadableBuffer for ReadOnlyBuffer {
-    fn read_bool(&self) -> Result<bool, OOBSError> {
-        self.read_u8().map(|x| x == 1)
-    }
-
-    fn read_i8(&self) -> Result<i8, OOBSError> {
-        self.read_u8().map(|x| unsafe { transmute::<u8, i8>(x) })
-    }
-
     fn read_u8(&self) -> Result<u8, OOBSError> {
         if !self.has_readable_bytes(1) {
             return Err(OOBSError::new("No buffer space available!".to_string()));
@@ -48,42 +40,6 @@ impl ReadableBuffer for ReadOnlyBuffer {
         let rdx = *self.rdx.borrow();
         *self.rdx.borrow_mut() += 1;
         Ok(self.inner[rdx])
-    }
-
-    fn read_i16(&self) -> Result<i16, OOBSError> {
-        self.read_u16().map(|x| unsafe { transmute::<u16, i16>(x) })
-    }
-
-    fn read_u16(&self) -> Result<u16, OOBSError> {
-        self.read_bytes(2).map(|x| u16::from_be_bytes((*x).try_into().unwrap()))
-    }
-
-    fn read_i32(&self) -> Result<i32, OOBSError> {
-        self.read_u32().map(|x| unsafe { transmute::<u32, i32>(x) })
-    }
-
-    fn read_u32(&self) -> Result<u32, OOBSError> {
-        self.read_bytes(4).map(|x| u32::from_be_bytes((*x).try_into().unwrap()))
-    }
-
-    fn read_i64(&self) -> Result<i64, OOBSError> {
-        self.read_u64().map(|x| unsafe { transmute::<u64, i64>(x) })
-    }
-
-    fn read_u64(&self) -> Result<u64, OOBSError> {
-        self.read_bytes(8).map(|x| u64::from_be_bytes((*x).try_into().unwrap()))
-    }
-
-    fn read_f32(&self) -> Result<f32, OOBSError> {
-        self.read_u32().map(|x| unsafe { transmute::<u32, f32>(x) })
-    }
-
-    fn read_f64(&self) -> Result<f64, OOBSError> {
-        self.read_u64().map(|x| unsafe { transmute::<u64, f64>(x) })
-    }
-
-    fn read_bytes(&self, byte_count: usize) -> Result<Box<[u8]>, OOBSError> {
-        todo!()
     }
 
     fn read_bytes_into(&self, byte_count: usize, buffer: &mut [u8]) -> Option<OOBSError> {
@@ -131,14 +87,6 @@ impl GeneralBuffer for TSReadOnlyBuffer {
 }
 
 impl ReadableBuffer for TSReadOnlyBuffer {
-    fn read_bool(&self) -> Result<bool, OOBSError> {
-        return self.read_u8().map(|x| x == 1);
-    }
-
-    fn read_i8(&self) -> Result<i8, OOBSError> {
-        self.read_u8().map(|x| unsafe { transmute::<u8, i8>(x) })
-    }
-
     fn read_u8(&self) -> Result<u8, OOBSError> {
         if !self.has_readable_bytes(1) {
             return Err(OOBSError::new("No buffer space available!".to_string()));
@@ -146,45 +94,6 @@ impl ReadableBuffer for TSReadOnlyBuffer {
         let rdx = self.rdx.load(Ordering::Acquire);
         self.rdx.store(rdx + 1, Ordering::Release);
         Ok(self.inner[rdx])
-    }
-
-    fn read_i16(&self) -> Result<i16, OOBSError> {
-        self.read_u16().map(|x| unsafe { transmute::<u16, i16>(x) })
-    }
-
-    fn read_u16(&self) -> Result<u16, OOBSError> {
-        self.read_bytes(2).map(|x| u16::from_be_bytes((*x).try_into().unwrap()))
-    }
-
-    fn read_i32(&self) -> Result<i32, OOBSError> {
-        self.read_u32().map(|x| unsafe { transmute::<u32, i32>(x) })
-    }
-
-    fn read_u32(&self) -> Result<u32, OOBSError> {
-        self.read_bytes(4).map(|x| u32::from_be_bytes((*x).try_into().unwrap()))
-    }
-
-    fn read_i64(&self) -> Result<i64, OOBSError> {
-        self.read_u64().map(|x| unsafe { transmute::<u64, i64>(x) })
-    }
-
-    fn read_u64(&self) -> Result<u64, OOBSError> {
-        self.read_bytes(8).map(|x| u64::from_be_bytes((*x).try_into().unwrap()))
-    }
-
-    fn read_f32(&self) -> Result<f32, OOBSError> {
-        self.read_u32().map(|x| unsafe { transmute::<u32, f32>(x) })
-    }
-
-    fn read_f64(&self) -> Result<f64, OOBSError> {
-        self.read_u64().map(|x| unsafe { transmute::<u64, f64>(x) })
-    }
-
-    fn read_bytes(&self, byte_count: usize) -> Result<Box<[u8]>, OOBSError> {
-        if !self.has_readable_bytes(byte_count) {
-            return Err(OOBSError::new("No buffer space available!".to_string()));
-        }
-        todo!()
     }
 
     fn read_bytes_into(&self, byte_count: usize, buffer: &mut [u8]) -> Option<OOBSError> {

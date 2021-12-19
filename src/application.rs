@@ -1,6 +1,7 @@
+use std::sync::Arc;
+
 use crate::connection::Connection;
 use crate::event::Listener;
-use std::sync::Arc;
 
 pub type Application = Arc<(dyn RawApplication + Sync + Send)>;
 

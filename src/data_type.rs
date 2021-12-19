@@ -1,8 +1,9 @@
-use crate::utils::DataContainer;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
-use crate::buffer::{RWBuffer, RBuffer};
+
 use crate::application::Application;
+use crate::buffer::{RBuffer, RWBuffer};
+use crate::utils::DataContainer;
 
 #[derive(Clone)]
 pub enum DataType {
@@ -14,6 +15,7 @@ pub enum DataType {
     I64,
     Array(Box<DataType>),
     InternalPayload,
+    Other,
 
 }
 

@@ -1,7 +1,7 @@
-use crate::utils::DataContainer;
-use crate::connection::Connection;
 use crate::application::Application;
 use crate::buffer::RWBuffer;
+use crate::connection::Connection;
+use crate::utils::DataContainer;
 
 pub struct Encoder {
 

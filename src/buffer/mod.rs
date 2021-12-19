@@ -1,20 +1,22 @@
+use std::convert::TryInto;
+use std::error::Error;
+use std::fmt::{Display, Formatter};
+use std::io::{ErrorKind, Read};
+use std::mem::{MaybeUninit, transmute};
+use std::ops::{Deref, DerefMut};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+use arc_swap::ArcSwap;
+use parking_lot::Mutex;
+
+use crate::buffer::utils::{IntoRaw, RawBuffer};
+
 pub mod basic;
 pub mod composed;
 pub mod utils;
 pub mod read_only;
 pub mod varint;
-
-use arc_swap::ArcSwap;
-use std::sync::Arc;
-use parking_lot::Mutex;
-use std::mem::{MaybeUninit, transmute};
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::fmt::{Display, Formatter};
-use std::io::{Read, ErrorKind};
-use std::error::Error;
-use std::convert::TryInto;
-use crate::buffer::utils::{IntoRaw, RawBuffer};
-use std::ops::{DerefMut, Deref};
 
 // These buffers are inspired by Netty
 

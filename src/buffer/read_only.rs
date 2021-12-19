@@ -1,8 +1,9 @@
-use crate::buffer::{OOBSError, ReadableBuffer, GeneralBuffer, ThreadSafeBuffer};
-use std::mem::transmute;
-use std::sync::atomic::{Ordering, AtomicUsize};
 use std::cell::RefCell;
 use std::convert::TryInto;
+use std::mem::transmute;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+use crate::buffer::{GeneralBuffer, OOBSError, ReadableBuffer, ThreadSafeBuffer};
 use crate::buffer::utils::IntoRaw;
 
 pub struct ReadOnlyBuffer {

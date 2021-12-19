@@ -1,9 +1,9 @@
-
-use crate::utils::DataContainer;
-use crate::connection::Connection;
-use crate::buffer::{RWBuffer, RBuffer};
-use crate::application::Application;
 use parking_lot::Mutex;
+
+use crate::application::Application;
+use crate::buffer::{RBuffer, RWBuffer};
+use crate::connection::Connection;
+use crate::utils::DataContainer;
 
 pub(crate) struct Decoder {
 

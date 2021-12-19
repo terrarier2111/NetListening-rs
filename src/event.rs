@@ -1,6 +1,8 @@
 use std::sync::Arc;
-use parking_lot::RwLock;
 use std::sync::atomic::{AtomicU64, Ordering};
+
+use parking_lot::RwLock;
+
 use crate::connection::Connection;
 use crate::utils::DataContainer;
 

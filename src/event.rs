@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
 
 use parking_lot::RwLock;
 
@@ -8,19 +8,15 @@ use crate::utils::DataContainer;
 
 #[derive(Clone)]
 pub enum Event {
-
     Connect(Connection),
     Disconnect(DisconnectReason),
     ReceiveData(/*DataContainer*/),
-
 }
 
 #[derive(Copy, Clone)]
 pub enum DisconnectReason {
-
     Timeout,
     None,
-
 }
 
 pub type Listener = Box<dyn Fn(&mut WrappedEvent) -> bool + Send + Sync>;
@@ -28,7 +24,6 @@ pub type Listener = Box<dyn Fn(&mut WrappedEvent) -> bool + Send + Sync>;
 pub(crate) struct WrappedEventModifierBuilder(u8);
 
 impl WrappedEventModifierBuilder {
-
     #[inline]
     pub(crate) const fn new() -> Self {
         Self(WrappedEvent::DEFAULT)
@@ -50,19 +45,15 @@ impl WrappedEventModifierBuilder {
     pub(crate) const fn build(self) -> u8 {
         self.0
     }
-
 }
 
 #[derive(Clone)]
 pub struct WrappedEvent {
-
     state: u8,
     pub event: Event,
-
 }
 
 impl WrappedEvent {
-
     pub(crate) const CANCELLABLE: u8 = 1 << 0;
     pub(crate) const CANCELLED: u8 = 1 << 1;
     pub(crate) const INTERRUPT_ON_CANCEL: u8 = 1 << 2;
@@ -104,14 +95,11 @@ impl WrappedEvent {
     pub fn cancel(&mut self) {
         self.set_cancelled(true);
     }
-
 }
 
 pub(crate) struct EventManager {
-
     listener_id: AtomicU64,
     listeners: Arc<RwLock<Vec<Listener>>>,
-
 }
 
 impl Default for EventManager {
@@ -124,7 +112,6 @@ impl Default for EventManager {
 }
 
 impl EventManager {
-
     pub fn call_event(&self, mut event: WrappedEvent) {
         let listeners = self.listeners.clone();
         let listeners = &*listeners.read();
@@ -142,8 +129,5 @@ impl EventManager {
     }
 
     /// Returns an id which can be used to remove the listener later on or to replace it.
-    pub fn register_listener_with_id(&self, listener: Listener, id: u64) {
-
-    }
-
+    pub fn register_listener_with_id(&self, listener: Listener, id: u64) {}
 }

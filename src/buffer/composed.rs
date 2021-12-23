@@ -1,35 +1,45 @@
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::sync::Arc;
 use std::sync::atomic::AtomicUsize;
+use std::sync::Arc;
 
 use arc_swap::ArcSwap;
 use parking_lot::Mutex;
 
-use crate::buffer::{GeneralBuffer, OOBSError, ReadableBuffer, WritableBuffer};
 use crate::buffer::utils::IntoRaw;
+use crate::buffer::{
+    AsSliceArced, AsSliceBoxed, GeneralBuffer, OOBSError, ReadableBuffer, WritableBuffer,
+};
 
 pub struct ComposedBuffer {
-
     inner: Rc<RefCell<Vec<Rc<RefCell<Box<[u8]>>>>>>, // TODO: Can this size be inlined into Mutex?
-    rdx: RefCell<usize>, // reader index
-    wrx: RefCell<usize>, // writer index
-
+    rdx: RefCell<usize>,                             // reader index
+    wrx: RefCell<usize>,                             // writer index
 }
 
-impl GeneralBuffer for ComposedBuffer {
-    fn alloc_new(size: usize) -> Self where Self: Sized {
+impl ComposedBuffer {
+    fn alloc_from_buf(buf: Box<[u8]>) -> Arc<Self> {
         todo!()
     }
 
-    fn alloc_new_from_buf(buf: Box<[u8]>) -> Self where Self: Sized {
-        todo!()
-    }
-
-    fn raw_contained_bytes(self) -> Box<[u8]> where Self: Sized {
+    fn alloc_sized(size: usize) -> Arc<Self> {
         todo!()
     }
 }
+
+impl AsSliceBoxed for ComposedBuffer {
+    fn as_slice(self: Box<Self>) -> Box<[u8]> {
+        todo!()
+    }
+}
+
+impl AsSliceArced for ComposedBuffer {
+    fn as_slice(self: Arc<Self>) -> Box<[u8]> {
+        todo!()
+    }
+}
+
+impl GeneralBuffer for ComposedBuffer {}
 
 impl ReadableBuffer for ComposedBuffer {
     fn read_u8(&self) -> Result<u8, OOBSError> {
@@ -77,26 +87,34 @@ impl WritableBuffer for ComposedBuffer {
 }
 
 pub struct TSComposedBuffer {
-
     inner: ArcSwap<Vec<Arc<Mutex<Box<[u8]>>>>>, // TODO: Can this size be inlined into Mutex?
-    rdx: AtomicUsize, // reader index
-    wrx: AtomicUsize, // writer index
-
+    rdx: AtomicUsize,                           // reader index
+    wrx: AtomicUsize,                           // writer index
 }
 
-impl GeneralBuffer for TSComposedBuffer {
-    fn alloc_new(size: usize) -> Self where Self: Sized {
+impl TSComposedBuffer {
+    fn alloc_from_buf(buf: Box<[u8]>) -> Box<Self> {
         todo!()
     }
 
-    fn alloc_new_from_buf(buf: Box<[u8]>) -> Self where Self: Sized {
-        todo!()
-    }
-
-    fn raw_contained_bytes(self) -> Box<[u8]> where Self: Sized {
+    fn alloc_sized(size: usize) -> Box<Self> {
         todo!()
     }
 }
+
+impl AsSliceBoxed for TSComposedBuffer {
+    fn as_slice(self: Box<Self>) -> Box<[u8]> {
+        todo!()
+    }
+}
+
+impl AsSliceArced for TSComposedBuffer {
+    fn as_slice(self: Arc<Self>) -> Box<[u8]> {
+        todo!()
+    }
+}
+
+impl GeneralBuffer for TSComposedBuffer {}
 
 impl ReadableBuffer for TSComposedBuffer {
     fn read_u8(&self) -> Result<u8, OOBSError> {

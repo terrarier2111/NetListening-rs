@@ -1,25 +1,24 @@
-use std::net::{TcpListener, TcpStream, SocketAddr};
+use std::net::{SocketAddr, TcpListener, TcpStream};
+use std::sync::atomic::AtomicU64;
+use std::sync::{Arc, RwLock};
 use std::thread;
 use std::thread::JoinHandle;
-use std::sync::{Arc, RwLock};
+
+use crate::connection::{ConMethods, Connection};
 use crate::event::Event;
-use crate::connection::{Connection, ConMethods};
-use std::sync::atomic::AtomicU64;
-use socket2::{Socket, Domain, Type};
+
+// use socket2::{Socket, Domain, Type};
 
 pub type RawConnection = (TcpStream, SocketAddr);
 
 pub struct Server {
-
     listener: Arc<TcpListener>,
     client_acceptor: JoinHandle<()>,
     connections: Arc<RwLock<Vec<Connection>>>,
     connections_id: Arc<AtomicU64>,
-
 }
 
 impl Server {
-
     #[inline]
     pub fn builder_from_port(port: u16) -> ServerBuilder<'static> {
         ServerBuilder::from_port(port)
@@ -37,13 +36,11 @@ impl Server {
         let tmp_listener = listener.clone();
         let connections_id = Arc::new(AtomicU64::default());
         let tmp_id = connections_id.clone();
-        let client_acceptor = thread::spawn(move || {
-            loop {
-                let raw_connection = tmp_listener.clone().accept().unwrap();
-                let connection = Connection::new_con(raw_connection.0, raw_connection.1, tmp_id.clone());
-                let event = Event::Connect(connection);
-
-            }
+        let client_acceptor = thread::spawn(move || loop {
+            let raw_connection = tmp_listener.clone().accept().unwrap();
+            let connection =
+                Connection::new_con(raw_connection.0, raw_connection.1, tmp_id.clone());
+            let event = Event::Connect(connection);
         });
         Self {
             listener,
@@ -52,23 +49,19 @@ impl Server {
             connections_id: connections_id.clone(),
         }
     }
-
 }
 
 pub struct ServerBuilder<'a> {
-
     bind_port: Option<u16>,
     path: Option<&'a str>,
-
 }
 
 impl<'a> ServerBuilder<'a> {
-
     #[inline]
     pub fn from_port(port: u16) -> Self {
         Self {
             bind_port: Some(port),
-            path: None
+            path: None,
         }
     }
 
@@ -77,7 +70,7 @@ impl<'a> ServerBuilder<'a> {
     pub fn from_path(path: &'a str) -> Self {
         Self {
             bind_port: None,
-            path: Some(path)
+            path: Some(path),
         }
     }
 
@@ -85,15 +78,12 @@ impl<'a> ServerBuilder<'a> {
     pub async fn build(self) -> Server {
         Server::new(self).await
     }
-
 }
 
 pub enum ClientSetting {
-
     BufferSize(usize),
     Timeout(Option<usize>),
     StringEncoding(),
     Compression(),
     Encryption(),
-
 }

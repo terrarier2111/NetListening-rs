@@ -3,49 +3,59 @@ use std::convert::TryInto;
 use std::io::Read;
 use std::mem::transmute;
 use std::rc::Rc;
-use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 
 use arc_swap::ArcSwap;
 use parking_lot::Mutex;
 
-use crate::buffer::{GeneralBuffer, OOBSError, ReadableBuffer, RWBufferType, ThreadSafeBuffer, WritableBuffer};
 use crate::buffer::utils::{IntoRaw, RawBuffer};
+use crate::buffer::{
+    AsSliceArced, AsSliceBoxed, GeneralBuffer, OOBSError, RWBufferType, ReadableBuffer,
+    ThreadSafeBuffer, WritableBuffer,
+};
 
 pub struct BasicBuffer {
-
     inner: RefCell<Box<[u8]>>,
-    rdx: RefCell<usize>,  // reader index
-    wrx: RefCell<usize>,  // writer index
+    rdx: RefCell<usize>, // reader index
+    wrx: RefCell<usize>, // writer index
     size: usize, // the size of the currently allocated space (used to bypass the arc and mutex)
-
 }
 
-impl GeneralBuffer for BasicBuffer {
-    fn alloc_new(size: usize) -> Self {
-        Self {
-            inner: RefCell::new(vec![0; size].into_boxed_slice()),
-            rdx: Default::default(),
-            wrx: Default::default(),
-            size,
-        }
-    }
-
-    fn alloc_new_from_buf(buf: Box<[u8]>) -> Self where Self: Sized {
+impl BasicBuffer {
+    pub(crate) fn alloc_from_buf(buf: Box<[u8]>) -> Box<BasicBuffer> {
         let size = buf.len();
-        Self {
+        Box::from(BasicBuffer {
             inner: RefCell::new(buf),
             rdx: Default::default(),
             wrx: Default::default(),
             size,
-        }
+        })
     }
 
-    fn raw_contained_bytes(self) -> Box<[u8]> where Self: Sized {
+    pub(crate) fn alloc_sized(size: usize) -> Box<BasicBuffer> {
+        Box::from(BasicBuffer {
+            inner: RefCell::new(vec![0; size].into_boxed_slice()),
+            rdx: Default::default(),
+            wrx: Default::default(),
+            size,
+        })
+    }
+}
+
+impl AsSliceBoxed for BasicBuffer {
+    fn as_slice(self: Box<Self>) -> Box<[u8]> {
         self.inner.take()
     }
 }
 
+impl AsSliceArced for BasicBuffer {
+    fn as_slice(self: Arc<Self>) -> Box<[u8]> {
+        todo!()
+    }
+}
+
+impl GeneralBuffer for BasicBuffer {}
 
 impl ReadableBuffer for BasicBuffer {
     fn read_bool(&self) -> Result<bool, OOBSError> {
@@ -71,7 +81,8 @@ impl ReadableBuffer for BasicBuffer {
     }
 
     fn read_u16(&self) -> Result<u16, OOBSError> {
-        self.read_bytes(2).map(|x| u16::from_be_bytes((*x).try_into().unwrap()))
+        self.read_bytes(2)
+            .map(|x| u16::from_be_bytes((*x).try_into().unwrap()))
     }
 
     fn read_i32(&self) -> Result<i32, OOBSError> {
@@ -79,7 +90,8 @@ impl ReadableBuffer for BasicBuffer {
     }
 
     fn read_u32(&self) -> Result<u32, OOBSError> {
-        self.read_bytes(4).map(|x| u32::from_be_bytes((*x).try_into().unwrap()))
+        self.read_bytes(4)
+            .map(|x| u32::from_be_bytes((*x).try_into().unwrap()))
     }
 
     fn read_i64(&self) -> Result<i64, OOBSError> {
@@ -87,7 +99,8 @@ impl ReadableBuffer for BasicBuffer {
     }
 
     fn read_u64(&self) -> Result<u64, OOBSError> {
-        self.read_bytes(8).map(|x| u64::from_be_bytes((*x).try_into().unwrap()))
+        self.read_bytes(8)
+            .map(|x| u64::from_be_bytes((*x).try_into().unwrap()))
     }
 
     fn read_f32(&self) -> Result<f32, OOBSError> {
@@ -149,36 +162,52 @@ impl WritableBuffer for BasicBuffer {
 }
 
 pub struct TSBasicBuffer {
-
     inner: Arc<Mutex<Box<[u8]>>>, // TODO: Can this size be inlined into Mutex?
-    rdx: AtomicUsize,  // reader index
-    wrx: AtomicUsize,  // writer index
+    rdx: AtomicUsize,             // reader index
+    wrx: AtomicUsize,             // writer index
     size: usize, // the size of the currently allocated space (used to bypass the arc and mutex)
-
 }
 
-impl GeneralBuffer for TSBasicBuffer {
-    fn alloc_new(size: usize) -> Self {
-        Self {
-            inner: Arc::new(Mutex::new(vec![0; size].into_boxed_slice())), // FIXME: Use Box::new_uninit_slice(len).assume_init once it's stabilized!
-            rdx: Default::default(),
-            wrx: Default::default(),
-            size,
-        }
+impl TSBasicBuffer {
+    fn alloc(self) -> Box<Self> {
+        todo!()
     }
 
-    fn alloc_new_from_buf(buf: Box<[u8]>) -> Self where Self: Sized {
+    fn alloc_from_buf(buf: Box<[u8]>) -> Box<Self> {
         let size = buf.len();
-        Self {
+        Box::from(Self {
             inner: Arc::new(Mutex::new(buf)), // FIXME: Use Box::new_uninit_slice(len).assume_init once it's stabilized!
             rdx: Default::default(),
             wrx: Default::default(),
             size,
-        }
+        })
     }
 
-    fn raw_contained_bytes(self) -> Box<[u8]> where Self: Sized {
+    fn alloc_sized(size: usize) -> Box<Self> {
+        Box::from(Self {
+            inner: Arc::new(Mutex::new(vec![0; size].into_boxed_slice())), // FIXME: Use Box::new_uninit_slice(len).assume_init once it's stabilized!
+            rdx: Default::default(),
+            wrx: Default::default(),
+            size,
+        })
+    }
+
+    fn as_slice(self) -> Box<[u8]> {
         // self.inner.into_inner()
+        todo!()
+    }
+}
+
+impl GeneralBuffer for TSBasicBuffer {}
+
+impl AsSliceBoxed for TSBasicBuffer {
+    fn as_slice(self: Box<Self>) -> Box<[u8]> {
+        todo!()
+    }
+}
+
+impl AsSliceArced for TSBasicBuffer {
+    fn as_slice(self: Arc<Self>) -> Box<[u8]> {
         todo!()
     }
 }

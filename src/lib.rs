@@ -1,14 +1,14 @@
-pub mod client;
-pub mod server;
-pub mod event;
-pub mod data_type;
 pub mod application;
+mod buffer;
+pub mod client;
 pub mod connection;
-pub mod utils;
+pub mod data_type;
 mod decoder;
 mod encoder;
+pub mod event;
+pub mod server;
 mod timeout_handler;
-mod buffer;
+pub mod utils;
 
 #[cfg(test)]
 mod tests {
@@ -18,6 +18,3 @@ mod tests {
         assert_eq!(result, 4);
     }
 }
-
-
-

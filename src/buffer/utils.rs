@@ -1,15 +1,17 @@
-use crate::buffer::{GeneralBuffer, RBuffer, ReadableBuffer, RWBuffer, RWBufferType, WritableBuffer};
 use crate::buffer::basic::BasicBuffer;
 use crate::buffer::read_only::ReadOnlyBuffer;
+use crate::buffer::{
+    GeneralBuffer, RBuffer, RWBuffer, RWBufferType, ReadableBuffer, WritableBuffer,
+};
 
 // TODO: Maybe try to find a better way to deal with writer indices!
 
 pub fn readonly_buffer(size: usize) -> RBuffer {
-    Box::new(ReadOnlyBuffer::alloc_new(size))
+    ReadOnlyBuffer::alloc_sized(size)
 }
 
 pub fn readonly_buffer_from_buf(buf: Box<[u8]>) -> RBuffer {
-    Box::new(ReadOnlyBuffer::alloc_new_from_buf(buf))
+    ReadOnlyBuffer::alloc_from_buf(buf)
 }
 
 pub fn readonly_buffer_from_raw_buf(buf: RawBuffer) -> RBuffer {
@@ -21,16 +23,16 @@ pub fn readonly_buffer_from_raw_buf(buf: RawBuffer) -> RBuffer {
 
 pub fn readonly_view<T: RWBufferType>(buffer: Box<T>) -> RBuffer {
     let rdx = buffer.get_reader_index();
-    let raw = (buffer.raw_contained_bytes(), rdx);
+    let raw = (buffer.as_slice(), rdx);
     readonly_buffer_from_raw_buf(raw)
 }
 
 pub fn rw_buffer(size: usize) -> RWBuffer {
-    Box::new(BasicBuffer::alloc_new(size))
+    BasicBuffer::alloc_sized(size)
 }
 
 pub fn rw_buffer_from_buf(buf: Box<[u8]>) -> RWBuffer {
-    Box::new(BasicBuffer::alloc_new_from_buf(buf))
+    BasicBuffer::alloc_from_buf(buf)
 }
 
 pub fn rw_buffer_from_raw_buf(buf: RawBuffer) -> RWBuffer {
@@ -42,11 +44,14 @@ pub fn rw_buffer_from_raw_buf(buf: RawBuffer) -> RWBuffer {
 
 pub fn rw_view<T: ReadableBuffer>(buffer: Box<T>) -> RWBuffer {
     let rdx = buffer.get_reader_index();
-    let raw = (buffer.raw_contained_bytes(), rdx);
+    let raw = (buffer.as_slice(), rdx);
     rw_buffer_from_raw_buf(raw)
 }
 
-pub trait IntoRaw<T> where T: Sized {
+pub trait IntoRaw<T>
+where
+    T: Sized,
+{
     fn into_raw(self) -> T;
 }
 

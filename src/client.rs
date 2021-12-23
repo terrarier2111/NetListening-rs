@@ -1,16 +1,13 @@
-use crate::event::EventManager;
 use std::net::TcpStream;
 
-pub struct Client {
+use crate::event::EventManager;
 
+pub struct Client {
     event_manager: EventManager,
     local_connection: TcpStream,
-
-
 }
 
 impl Client {
-
     #[inline]
     pub fn builder_from_destination(address: String, port: u16) -> ClientBuilder {
         ClientBuilder::from_destination(address, port)
@@ -19,21 +16,21 @@ impl Client {
     async fn new(builder: ClientBuilder) -> Self {
         Self {
             event_manager: EventManager::default(),
-            local_connection: TcpStream::connect(format!("{}:{}", builder.dst_address, builder.dst_port)).unwrap(),
+            local_connection: TcpStream::connect(format!(
+                "{}:{}",
+                builder.dst_address, builder.dst_port
+            ))
+            .unwrap(),
         }
     }
-
 }
 
 pub struct ClientBuilder {
-
     dst_address: String,
     dst_port: u16,
-
 }
 
 impl ClientBuilder {
-
     #[inline]
     pub fn from_destination(address: String, port: u16) -> Self {
         Self {
@@ -44,7 +41,6 @@ impl ClientBuilder {
 
     #[inline]
     pub fn setting(mut self, setting: ClientSetting) -> Self {
-
         self
     }
 
@@ -52,13 +48,10 @@ impl ClientBuilder {
     pub async fn build(self) -> Client {
         Client::new(self).await
     }
-
 }
 
 pub enum ClientSetting {
-
     BufferSize(usize),
     Timeout(Option<usize>),
     LocalPort(u16),
-
 }

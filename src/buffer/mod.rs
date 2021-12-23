@@ -1,21 +1,23 @@
+use std::any::Any;
 use std::convert::TryInto;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::io::{ErrorKind, Read};
-use std::mem::{MaybeUninit, transmute};
+use std::mem::{transmute, MaybeUninit};
 use std::ops::{Deref, DerefMut};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
 
 use arc_swap::ArcSwap;
 use parking_lot::Mutex;
 
+use crate::buffer::basic::BasicBuffer;
 use crate::buffer::utils::{IntoRaw, RawBuffer};
 
 pub mod basic;
 pub mod composed;
-pub mod utils;
 pub mod read_only;
+pub mod utils;
 pub mod varint;
 
 // These buffers are inspired by Netty
@@ -34,26 +36,34 @@ pub trait BufferAllocator<const SIZE: usize> {
 pub type RWBuffer = Box<dyn RWBufferType>;
 pub type RBuffer = Box<dyn ReadableBuffer>;
 
-pub trait RWBufferType: ReadableBuffer + WritableBuffer {
+pub trait RWBufferType: ReadableBuffer + WritableBuffer {}
+
+pub trait GeneralBuffer: AsSliceBoxed + AsSliceArced
+/*Into<Box<[u8]>> + Into<Box<dyn Any>> + Into<Arc<dyn Any>>*//*AllocInto<Arc<Any: Self>, Any: Self> + AllocInto<Box<Any: Self>, Any: Self>*/
+{
+    // fn alloc() -> Box<Self>;
+
+    /*
+    fn alloc_from_buf(buf: Box<[u8]>) -> C;
+
+    fn alloc_sized(size: usize) -> C;*/
 }
 
-pub trait GeneralBuffer {
+pub trait AsSliceBoxed {
+    fn as_slice(self: Box<Self>) -> Box<[u8]>;
+}
 
-    fn alloc_new(size: usize) -> Self where Self: Sized;
-
-    fn alloc_new_from_buf(buf: Box<[u8]>) -> Self where Self: Sized;
-
-    fn raw_contained_bytes(self) -> Box<[u8]> where Self: Sized;
-
+pub trait AsSliceArced {
+    fn as_slice(self: Arc<Self>) -> Box<[u8]>;
 }
 
 impl<T> RWBufferType for T where T: WritableBuffer + ReadableBuffer {}
 
 pub trait ReadableBuffer: GeneralBuffer {
-
     // TODO: Implement char such that it somewhat works for any language!
 
-    fn read_bool(&self) -> Result<bool, OOBSError> { // TODO: Check if it's worth it to replace Result with Option for performance reasons
+    fn read_bool(&self) -> Result<bool, OOBSError> {
+        // TODO: Check if it's worth it to replace Result with Option for performance reasons
         return self.read_u8().map(|x| x == 1);
     }
 
@@ -68,7 +78,8 @@ pub trait ReadableBuffer: GeneralBuffer {
     }
 
     fn read_u16(&self) -> Result<u16, OOBSError> {
-        self.read_bytes(2).map(|x| u16::from_be_bytes((*x).try_into().unwrap()))
+        self.read_bytes(2)
+            .map(|x| u16::from_be_bytes((*x).try_into().unwrap()))
     }
 
     fn read_i32(&self) -> Result<i32, OOBSError> {
@@ -76,7 +87,8 @@ pub trait ReadableBuffer: GeneralBuffer {
     }
 
     fn read_u32(&self) -> Result<u32, OOBSError> {
-        self.read_bytes(4).map(|x| u32::from_be_bytes((*x).try_into().unwrap()))
+        self.read_bytes(4)
+            .map(|x| u32::from_be_bytes((*x).try_into().unwrap()))
     }
 
     fn read_i64(&self) -> Result<i64, OOBSError> {
@@ -84,7 +96,8 @@ pub trait ReadableBuffer: GeneralBuffer {
     }
 
     fn read_u64(&self) -> Result<u64, OOBSError> {
-        self.read_bytes(8).map(|x| u64::from_be_bytes((*x).try_into().unwrap()))
+        self.read_bytes(8)
+            .map(|x| u64::from_be_bytes((*x).try_into().unwrap()))
     }
 
     fn read_f32(&self) -> Result<f32, OOBSError> {
@@ -131,11 +144,9 @@ pub trait ReadableBuffer: GeneralBuffer {
     }
 
     fn contained_bytes(&self) -> usize;
-
 }
 
 pub trait WritableBuffer: GeneralBuffer {
-
     // TODO: Implement char such that it somewhat works for any language!
 
     // TODO: Does the output assembly change if i change Option<ERROR> to Result<(), ERROR> ?
@@ -209,7 +220,6 @@ pub trait WritableBuffer: GeneralBuffer {
     fn has_writable_bytes(&self, bytes: usize) -> bool {
         self.writable_bytes() >= bytes
     }
-
 }
 
 pub trait ThreadSafeBuffer: GeneralBuffer + Send + Sync {}
@@ -218,11 +228,9 @@ pub trait ThreadSafeBuffer: GeneralBuffer + Send + Sync {}
 pub struct OOBSError(String); // OutOfBufferSpaceError
 
 impl OOBSError {
-
     pub fn new(msg: String) -> Self {
         Self(msg)
     }
-
 }
 
 impl Display for OOBSError {
@@ -252,4 +260,17 @@ impl Read for dyn ReadableBuffer {
         let _result = self.read_bytes_into(readable, buf);
         return Ok(readable);
     }
+}*/
+
+/*
+pub trait AllocInto<C: Sized + Into<T>, T: GeneralBuffer + ?Sized> where Self: Sized + Into<T> {
+
+    fn alloc(self) -> C;
+
+    fn alloc_from_buf(buf: Box<[u8]>) -> C;
+
+    fn alloc_sized(size: usize) -> C;
+
+    fn as_slice(self) -> Box<[u8]>;
+
 }*/
